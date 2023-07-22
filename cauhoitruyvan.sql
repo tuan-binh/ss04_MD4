@@ -31,51 +31,120 @@ join khachhang kh on px.makhs = kh.makh
 join nhanvien nv on px.manvs = nv.manv;
 
 -- 8.	Truy vấn số lượng và giá bán của sản phẩm trong các phiếu xuất có mã số là 'PX002'.
-select * from 
+select sl,giaban from ctphieuxuat where sopx like "PX002";
 
 -- 9.	Truy vấn thông tin về các sản phẩm có giá bán lớn hơn hoặc bằng 10 triệu đồng.
+select * from sanpham sp 
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+where ctpx.giaban >= 10000000;
 
 -- 10.	Truy vấn thông tin về các sản phẩm có giá bán nằm trong khoảng từ 5 triệu đến 15 triệu đồng.
+select * from sanpham sp 
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+where ctpx.giaban between 5000000 and 15000000;
 
 -- 11.	Truy vấn tất cả các phiếu nhập và ngày nhập hàng của nhà cung cấp có mã số 'NCC003'.
+select * from phieunhap where manccs like "NCC03";
 
 -- 12.	Truy vấn tên sản phẩm và số lượng tồn kho (số lượng trong bảng ctphieuxuat trừ đi số lượng trong bảng ctphieunhap) của từng sản phẩm.
+select sp.tensp,(ctpn.soluong - ctpx.sl) `tồn kho` from sanpham sp 
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+where (ctpn.soluong - ctpx.sl) >= 0;
 
 -- 13.	Truy vấn tên nhân viên, tên khách hàng và ngày bán của các phiếu xuất có ngày bán trong tháng 7 năm 2023.
+select nv.hoten,kh.tenkh,px.ngayban from phieuxuat px 
+join khachhang kh on px.makhs = kh.makh
+join nhanvien nv on px.manvs = nv.manv
+where month(px.ngayban) and year(px.ngayban);
 
 -- 14.	Truy vấn tên nhân viên và tổng số lượng sản phẩm đã bán trong từng phiếu xuất.
+select nv.hoten,px.sopx,sum(ctpx.sl) sales from phieuxuat px 
+join ctphieuxuat ctpx on px.sopx = ctpx.spx
+join nhanvien nv on px.manvs = nv.manv
+group by px.sopx;
 
 -- 15.	Truy vấn tên khách hàng và tổng số tiền đã chi tiêu trong từng phiếu xuất.
+select kh.tenkh,sum(ctpx.sl * ctpx.giaban) from phieuxuat px 
+join khachhang kh on px.makhs = kh.makh
+join ctphieuxuat ctpx on px.sopx = ctpx.spx
+group by px.sopx;
 
 -- 16.	Truy vấn thông tin về nhà cung cấp và số lượng phiếu nhập mà họ đã tham gia.
+select ncc.tenncc,count(pn.sopn) from phieunhap pn
+join nhacungcap ncc on pn.manccs = ncc.mancc
+group by ncc.mancc;
 
 -- 17.	Truy vấn số lượng sản phẩm đã nhập và đã xuất theo từng loại sản phẩm.
+select sp.tensp,sum(ctpn.soluong) `số lượng nhập`,sum(ctpx.sl) `số lượng xuất` from sanpham sp 
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+group by sp.mlsp,sp.tensp;
 
 -- 18.	Truy vấn tên loại sản phẩm và tổng giá trị của sản phẩm thuộc loại đó.
+select lsp.tenlsp,sum(ctpn.gianhap * ctpn.soluong) from sanpham sp 
+join loaisp lsp on sp.mlsp = lsp.malsp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+group by lsp.malsp;
 
 -- 19.	Truy vấn tên loại sản phẩm và số lượng phiếu xuất mà có sản phẩm thuộc loại đó.
+select lsp.tenlsp,count(ctpx.spx) from sanpham sp 
+join loaisp lsp on sp.mlsp = lsp.malsp
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+group by lsp.malsp;
 
 -- 20.	Truy vấn thông tin về những phiếu nhập mà số lượng sản phẩm nhập vào ít hơn hoặc bằng 3.
+select * from ctphieunhap where soluong <= 3;
 
 -- 21.	Truy vấn thông tin về những phiếu nhập mà giá trị nhập vào lớn hơn hoặc bằng 50 triệu đồng.
+select * from ctphieunhap where gianhap <= 50000000;
 
 -- 22.	Truy vấn thông tin về những phiếu nhập mà nhân viên nhập hàng có địa chỉ ở Hà Nội.
+select pn.* from phieunhap pn
+join nhanvien nv on pn.manvs = nv.manv
+where nv.noisinh like "hanoi";
 
 -- 23.	Truy vấn thông tin về những phiếu xuất mà nhân viên xuất hàng có số điện thoại bắt đầu bằng '09'.
+select px.* from phieuxuat px 
+join nhanvien nv on px.manvs = nv.manv
+where nv.dienthoai like "09%";
 
 -- 24.	Truy vấn tên nhân viên và số lượng phiếu xuất mà họ đã thực hiện.
+select nv.hoten,count(px.sopx) from phieuxuat px 
+join nhanvien nv on nv.manv = px.manvs
+group by nv.manv;
 
 -- 25.	Truy vấn thông tin về những phiếu xuất mà khách hàng có mã số 'KH001' đã thực hiện.
+select * from phieuxuat where makhs like "KH01";
 
 -- 26.	Truy vấn thông tin về những phiếu xuất mà khách hàng có mã số 'KH002' đã thực hiện, sắp xếp kết quả theo ngày bán giảm dần.
+select * from phieuxuat where makhs like "KH02" order by day(ngayban) desc;
 
 -- 27.	Truy vấn số lượng sản phẩm nhập vào và số lượng sản phẩm xuất ra theo từng loại sản phẩm, sắp xếp kết quả theo tên loại sản phẩm.
+select lsp.tenlsp,sum(ctpn.gianhap * ctpn.soluong) from sanpham sp 
+join loaisp lsp on sp.mlsp = lsp.malsp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+group by lsp.malsp 
+order by lsp.tenlsp;
 
 -- 28.	Truy vấn tên nhân viên và số lượng phiếu xuất mà họ đã thực hiện trong năm 2023.
+select nv.hoten,count(px.sopx) 'số lượng' from phieuxuat px 
+join nhanvien nv on px.manvs = nv.manv
+where year(px.ngayban) = 2023
+group by nv.manv;
 
 -- 29.	Truy vấn tên nhân viên và số lượng phiếu nhập mà họ đã thực hiện trong tháng 5 năm 2023.
+select nv.hoten,count(pn.sopn) from phieunhap pn 
+join nhanvien nv on pn.manvs = nv.manv
+where month(pn.ngaynhap) = 5 and year(pn.ngaynhap) = 2023
+group by nv.manv;
 
 -- 30.	Truy vấn tên nhân viên và số lượng phiếu xuất mà họ đã thực hiện trong năm 2023, sắp xếp kết quả theo số lượng giảm dần.
+select nv.hoten,count(px.sopx) 'số lượng' from phieuxuat px 
+join nhanvien nv on px.manvs = nv.manv
+where year(px.ngayban) = 2023
+group by nv.manv
+order by count(px.sopx) desc;
 
 -- 31.	Truy vấn tên nhân viên và số lượng phiếu nhập mà họ đã thực hiện trong năm 2023, sắp xếp kết quả theo số lượng tăng dần.
 
