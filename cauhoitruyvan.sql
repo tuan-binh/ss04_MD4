@@ -49,8 +49,7 @@ select * from phieunhap where manccs like "NCC03";
 -- 12.	Truy vấn tên sản phẩm và số lượng tồn kho (số lượng trong bảng ctphieuxuat trừ đi số lượng trong bảng ctphieunhap) của từng sản phẩm.
 select sp.tensp,(ctpn.soluong - ctpx.sl) `tồn kho` from sanpham sp 
 join ctphieunhap ctpn on sp.masp = ctpn.masps
-join ctphieuxuat ctpx on sp.masp = ctpx.msp
-where (ctpn.soluong - ctpx.sl) >= 0;
+join ctphieuxuat ctpx on sp.masp = ctpx.msp;
 
 -- 13.	Truy vấn tên nhân viên, tên khách hàng và ngày bán của các phiếu xuất có ngày bán trong tháng 7 năm 2023.
 select nv.hoten,kh.tenkh,px.ngayban from phieuxuat px 
@@ -147,28 +146,84 @@ group by nv.manv
 order by count(px.sopx) desc;
 
 -- 31.	Truy vấn tên nhân viên và số lượng phiếu nhập mà họ đã thực hiện trong năm 2023, sắp xếp kết quả theo số lượng tăng dần.
+select nv.hoten,count(pn.sopn) 'số lượng' from phieunhap pn 
+join nhanvien nv on pn.manvs = nv.manv
+where year(pn.ngaynhap) = 2023
+group by nv.manv
+order by count(pn.sopn);
 
 -- 32.	Truy vấn tên khách hàng và số lượng phiếu xuất mà họ đã thực hiện trong năm 2023, sắp xếp kết quả theo số lượng giảm dần.
+select kh.tenkh,count(px.sopx) 'số lượng' from phieuxuat px
+join khachhang kh on px.makhs = kh.makh
+where year(px.ngayban) = 2023
+group by kh.makh
+order by count(px.sopx) desc;
 
--- 33.	Truy vấn tên khách hàng và số lượng phiếu nhập mà họ đã thực hiện trong năm 2023, sắp xếp kết quả theo số lượng tăng dần.
+-- 33.	Truy vấn tên nhiên viên và số lượng phiếu nhập mà họ đã thực hiện trong năm 2023, sắp xếp kết quả theo số lượng tăng dần.
+select kh.tenkh,count(pn.sopn) 'số lượng' from phieunhap pn
+join khachhang kh on pn.makh = kh.makh
+where year(pn.ngaynhap) = 2023
+group by kh.makh
+order by count(pn.sopn);
 
 -- 34.	Truy vấn thông tin về những sản phẩm có trong phiếu nhập và không có trong phiếu xuất.
+select * from sanpham sp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+where ctpn.masps = sp.masp and not ctpx.msp = sp.masp;
 
 -- 35.	Truy vấn thông tin về những sản phẩm có trong phiếu xuất và không có trong phiếu nhập.
+select * from sanpham sp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+where not ctpn.masps = sp.masp and ctpx.msp = sp.masp;
 
 -- 36.	Truy vấn số lượng sản phẩm nhập vào và số lượng sản phẩm xuất ra của từng loại sản phẩm, và chỉ lấy các loại sản phẩm có số lượng nhập vào lớn hơn số lượng xuất ra.
+select lsp.tenlsp,sum(ctpn.soluong) slnhap,sum(ctpx.sl) slxuat from sanpham sp 
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+join loaisp lsp on sp.mlsp = lsp.malsp
+group by lsp.malsp
+having slnhap > slxuat;
 
 -- 37.	Truy vấn số lượng sản phẩm nhập vào và số lượng sản phẩm xuất ra của từng loại sản phẩm, và chỉ lấy các loại sản phẩm có số lượng nhập vào nhỏ hơn số lượng xuất ra.
+select lsp.tenlsp,sum(ctpn.soluong) slnhap,sum(ctpx.sl) slxuat from sanpham sp 
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+join loaisp lsp on sp.mlsp = lsp.malsp
+group by lsp.malsp
+having slnhap < slxuat;
 
 -- 38.	Truy vấn tên loại sản phẩm và số lượng sản phẩm đã nhập vào, sắp xếp kết quả theo số lượng giảm dần.
+select lsp.tenlsp,sum(ctpn.soluong) soluong from sanpham sp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join loaisp lsp on lsp.malsp = sp.mlsp
+group by lsp.malsp 
+order by soluong desc;
 
 -- 39.	Truy vấn tên loại sản phẩm và số lượng sản phẩm đã xuất ra, sắp xếp kết quả theo số lượng giảm dần.
+select lsp.tenlsp,sum(ctpx.sl) soluong from sanpham sp
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+join loaisp lsp on lsp.malsp = sp.mlsp
+group by lsp.malsp 
+order by soluong desc;
 
 -- 40.	Truy vấn tên loại sản phẩm và số lượng sản phẩm đã nhập vào, sắp xếp kết quả theo số lượng tăng dần.
+select lsp.tenlsp,sum(ctpn.soluong) soluong from sanpham sp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join loaisp lsp on lsp.malsp = sp.mlsp
+group by lsp.malsp 
+order by soluong;
 
 -- 41.	Truy vấn tên loại sản phẩm và số lượng sản phẩm đã xuất ra, sắp xếp kết quả theo số lượng tăng dần.
+select lsp.tenlsp,sum(ctpx.sl) soluong from sanpham sp
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+join loaisp lsp on lsp.malsp = sp.mlsp
+group by lsp.malsp 
+order by soluong;
 
 -- 42.	Truy vấn tên nhân viên và số lượng sản phẩm nhập vào của từng nhân viên, và chỉ lấy những nhân viên có số lượng nhập vào lớn hơn 10 sản phẩm.
+
 
 -- 43.	Truy vấn tên nhân viên và số lượng sản phẩm xuất ra của từng nhân viên, và chỉ lấy những nhân viên có số lượng xuất ra nhỏ hơn 5 sản phẩm.
 
