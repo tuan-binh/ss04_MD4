@@ -223,21 +223,62 @@ group by lsp.malsp
 order by soluong;
 
 -- 42.	Truy vấn tên nhân viên và số lượng sản phẩm nhập vào của từng nhân viên, và chỉ lấy những nhân viên có số lượng nhập vào lớn hơn 10 sản phẩm.
-
+select nv.hoten,sum(ctpn.soluong) from  nhanvien nv 
+join phieunhap pn on nv.manv = pn.manvs
+join ctphieunhap ctpn on ctpn.sopns = pn.sopn
+group by nv.manv
+having sum(ctpn.soluong) > 10;
 
 -- 43.	Truy vấn tên nhân viên và số lượng sản phẩm xuất ra của từng nhân viên, và chỉ lấy những nhân viên có số lượng xuất ra nhỏ hơn 5 sản phẩm.
+select nv.hoten,sum(ctpx.sl) from nhanvien nv 
+join phieuxuat px on nv.manv = px.manvs
+join ctphieuxuat ctpx on px.sopx = ctpx.spx
+group by nv.manv
+having sum(ctpx.sl) < 5;
 
 -- 44.	Truy vấn thông tin về những sản phẩm có giá nhập vào nhỏ hơn 5 triệu đồng và giá xuất ra lớn hơn 10 triệu đồng.
+select sp.* from sanpham sp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+where ctpn.gianhap < 5000000 and ctpx.giaban > 10000000;
 
 -- 45.	Truy vấn thông tin về những sản phẩm có giá nhập vào lớn hơn giá xuất ra.
+select sp.* from sanpham sp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+where ctpn.gianhap > ctpx.giaban;
 
 -- 46.	Truy vấn tên loại sản phẩm và số lượng phiếu nhập mà loại sản phẩm đó không có trong phiếu xuất.
+select lsp.tenlsp,count(ctpn.sopns) from sanpham sp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+join loaisp lsp on lsp.malsp = sp.mlsp
+where ctpn.masps = sp.masp and not ctpx.msp = sp.masp
+group by lsp.malsp;
 
 -- 47.	Truy vấn tên loại sản phẩm và số lượng phiếu xuất mà loại sản phẩm đó không có trong phiếu nhập.
+select lsp.tenlsp,count(ctpn.sopns) from sanpham sp
+join ctphieunhap ctpn on sp.masp = ctpn.masps
+join ctphieuxuat ctpx on sp.masp = ctpx.msp
+join loaisp lsp on lsp.malsp = sp.mlsp
+where not ctpn.masps = sp.masp and ctpx.msp = sp.masp
+group by lsp.malsp;
 
 -- 48.	Truy vấn thông tin về những nhà cung cấp mà không có phiếu nhập hoặc phiếu nhập có giá trị nhập vào lớn hơn 20 triệu đồng.
+select ncc.* from nhacungcap ncc 
+join phieunhap pn on ncc.mancc = pn.manccs
+join ctphieunhap ctpn on pn.sopn = ctpn.sopns
+where not ncc.mancc = pn.manccs or ctpn.gianhap > 20000000;
 
 -- 49.	Truy vấn thông tin về những khách hàng mà không có phiếu xuất hoặc phiếu xuất có giá trị xuất ra nhỏ hơn 50 triệu đồng.
+select kh.* from khachhang kh 
+join phieuxuat px on kh.makh = px.makhs
+join ctphieuxuat ctpx on px.sopx = ctpx.spx
+where not kh.makh = px.makhs or ctpx.giaban < 50000000;
 
 -- 50.	Truy vấn thông tin về những nhân viên mà không có phiếu nhập hoặc phiếu xuất trong năm 2023.
+select nv.* from nhanvien nv
+join phieunhap pn on nv.manv = pn.manvs
+join phieuxuat px on nv.manv = px.manvs
+where not (nv.manv = pn.manvs or nv.manv = px.manvs) and year(now()) = 2023;
 
